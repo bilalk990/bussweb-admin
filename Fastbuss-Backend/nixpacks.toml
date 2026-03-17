@@ -12,3 +12,4 @@ cmd = 'node dist/index.js'
 
 [variables]
 NODE_ENV = 'production'
+VITE_API_BASE_URL = '/api/v1'
