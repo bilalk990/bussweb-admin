@@ -1,0 +1,8 @@
+static_sites:
+  - name: fastbuss-admin
+    buildCommand: npm install && npm run build
+    publishDirectory: dist
+    routes:
+      - type: rewrite
+        source: "/*"
+        destination: "/index.html" 
