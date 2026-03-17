@@ -1,0 +1,5 @@
+# Ignore PHP detection
+composer.json
+composer.lock
+artisan
+*.php
