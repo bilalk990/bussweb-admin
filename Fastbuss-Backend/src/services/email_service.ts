@@ -9,7 +9,7 @@ import { Types } from "mongoose";
 
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder');
 
 export async function sendOTP(email: string, otp: string) {
     try {
