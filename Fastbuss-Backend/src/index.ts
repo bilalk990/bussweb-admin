@@ -49,6 +49,16 @@ app.use(morgan('dev'));
 
 connectToDatabase();
 
+// Serve React frontend
+const frontendPath = path.join(__dirname, '../../FastBuss-Admin/dist');
+const fs = require('fs');
+console.log('Checking frontend path:', frontendPath);
+console.log('Frontend exists:', fs.existsSync(frontendPath));
+
+// Serve static files
+app.use(express.static(frontendPath));
+
+// API routes first
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/super-admin', superAdminRoutes);
 app.use('/api/v1/user', userRoutes);
@@ -59,21 +69,15 @@ app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/paypal', paypalRoutes);
 app.use('/api/v1/support', supportTicketRoutes);
 
-// Serve React frontend
-const frontendPath = path.join(__dirname, '../../FastBuss-Admin/dist');
-const fs = require('fs');
-console.log('Checking frontend path:', frontendPath);
-console.log('Frontend exists:', fs.existsSync(frontendPath));
-if (fs.existsSync(frontendPath)) {
-  app.use(express.static(frontendPath));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-  });
-} else {
-  app.get('*', (req, res) => {
+// Catch-all handler for React Router
+app.get('*', (req, res) => {
+  const indexPath = path.join(frontendPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
     res.status(404).json({ message: 'Frontend not built', path: frontendPath });
-  });
-}
+  }
+});
 
 const server = http.createServer(app);
 setupSocket(server);
