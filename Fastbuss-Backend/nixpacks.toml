@@ -2,10 +2,10 @@
 nixPkgs = ['nodejs_20']
 
 [phases.install]
-cmds = ['npm install && cd ../FastBuss-Admin && npm install']
+cmds = ['npm install']
 
 [phases.build]
-cmds = ['cd ../FastBuss-Admin && npm run build && cd ../Fastbuss-Backend && npm run build']
+cmds = ['npm run build']
 
 [start]
 cmd = 'node dist/index.js'

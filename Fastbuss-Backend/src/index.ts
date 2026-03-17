@@ -62,14 +62,16 @@ app.use('/api/v1/support', supportTicketRoutes);
 // Serve React frontend
 const frontendPath = path.join(__dirname, '../../../FastBuss-Admin/dist');
 const frontendPath2 = path.join(__dirname, '../../FastBuss-Admin/dist');
-const finalFrontendPath = require('fs').existsSync(frontendPath) ? frontendPath : frontendPath2;
+const fs = require('fs');
+const finalFrontendPath = fs.existsSync(frontendPath) ? frontendPath : frontendPath2;
+console.log('Frontend path:', finalFrontendPath, 'exists:', fs.existsSync(finalFrontendPath));
 app.use(express.static(finalFrontendPath));
 app.get('*', (req, res) => {
   const indexPath = path.join(finalFrontendPath, 'index.html');
-  if (require('fs').existsSync(indexPath)) {
+  if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    res.status(404).json({ message: 'Frontend not found', tried: [frontendPath, frontendPath2] });
+    res.status(404).json({ message: 'Frontend not built', path: finalFrontendPath });
   }
 });
 
