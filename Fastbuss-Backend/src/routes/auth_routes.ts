@@ -7,7 +7,7 @@ import bcrypt from 'bcryptjs';
 const router = Router();
 
 // TEMP: Create super admin - remove after first use
-router.get('/setup-admin', async (req, res) => {
+router.get('/setup-admin', async (req: any, res: { json: (arg0: { message: string; email: any; password?: string; }) => void; status: (arg0: number) => { (): any; new(): any; json: { (arg0: { error: unknown; }): void; new(): any; }; }; }) => {
   try {
     const existing = await User.findOne({ role: 'super_admin' });
     if (existing) {
