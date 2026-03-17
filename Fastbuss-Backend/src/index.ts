@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import http from 'http';
+import path from 'path';
 import { connectToDatabase } from "./config/database";
 import authRoutes from "./routes/auth_routes";
 import superAdminRoutes from "./routes/super_admin_routes";
@@ -57,6 +58,13 @@ app.use('/api/v1/driver', driverRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/paypal', paypalRoutes);
 app.use('/api/v1/support', supportTicketRoutes);
+
+// Serve React frontend
+const frontendPath = path.join(__dirname, '../../FastBuss-Admin/dist');
+app.use(express.static(frontendPath));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
 
 const server = http.createServer(app);
 setupSocket(server);

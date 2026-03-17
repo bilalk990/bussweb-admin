@@ -27,3 +27,6 @@ test/
 # Logs
 logs/
 *.log 
+
+# Puppeteer cache
+.cache/
