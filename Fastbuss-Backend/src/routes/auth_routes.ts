@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { authController } from "../controllers/auth_controller";
 import tokenValidationMiddleware from '../middlewares/token_validator';
 import { User } from '../models/user_model';
@@ -7,12 +7,11 @@ import bcrypt from 'bcryptjs';
 const router = Router();
 
 // TEMP: Create super admin - remove after first use
-router.get('/setup-admin', async (req: any, res: { json: (arg0: { message: string; email: any; password?: string; }) => void; status: (arg0: number) => { (): any; new(): any; json: { (arg0: { error: unknown; }): void; new(): any; }; }; }) => {
+router.get('/setup-admin', async (req: Request, res: Response) => {
   try {
     const existing = await User.findOne({ role: 'super_admin' });
     if (existing) {
-      res.json({ message: 'Super admin already exists', email: existing.email });
-      return;
+      return res.json({ message: 'Super admin already exists', email: existing.email });
     }
     const salt = await bcrypt.genSalt(10);
     const hashed = await bcrypt.hash('Admin@123', salt);
@@ -25,9 +24,9 @@ router.get('/setup-admin', async (req: any, res: { json: (arg0: { message: strin
       status: 'active'
     });
     await admin.save();
-    res.json({ message: 'Super admin created!', email: 'admin@fastbuss.com', password: 'Admin@123' });
+    return res.json({ message: 'Super admin created!', email: 'admin@fastbuss.com', password: 'Admin@123' });
   } catch (e) {
-    res.status(500).json({ error: e });
+    return res.status(500).json({ error: e });
   }
 });
 
