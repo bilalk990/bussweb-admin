@@ -60,10 +60,17 @@ app.use('/api/v1/paypal', paypalRoutes);
 app.use('/api/v1/support', supportTicketRoutes);
 
 // Serve React frontend
-const frontendPath = path.join(__dirname, '../../FastBuss-Admin/dist');
-app.use(express.static(frontendPath));
+const frontendPath = path.join(__dirname, '../../../FastBuss-Admin/dist');
+const frontendPath2 = path.join(__dirname, '../../FastBuss-Admin/dist');
+const finalFrontendPath = require('fs').existsSync(frontendPath) ? frontendPath : frontendPath2;
+app.use(express.static(finalFrontendPath));
 app.get('*', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
+  const indexPath = path.join(finalFrontendPath, 'index.html');
+  if (require('fs').existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ message: 'Frontend not found', tried: [frontendPath, frontendPath2] });
+  }
 });
 
 const server = http.createServer(app);
