@@ -57,34 +57,17 @@ app.use(morgan('dev'));
 
 connectToDatabase();
 
-// Serve React frontend
-const frontendPath = path.join(__dirname, 'dist-frontend');
-const fallbackPath = path.join(__dirname, '../../FastBuss-Admin/dist');
-const fs = require('fs');
+// Temporary: Serve backend only for now
+console.log('Serving backend API only');
 
-let actualFrontendPath = null;
-if (fs.existsSync(frontendPath)) {
-  actualFrontendPath = frontendPath;
-  console.log('Using copied frontend from:', frontendPath);
-} else if (fs.existsSync(fallbackPath)) {
-  actualFrontendPath = fallbackPath;
-  console.log('Using fallback frontend from:', fallbackPath);
-} else {
-  console.log('No frontend found, serving backend only');
-}
-
-console.log('Frontend path check:', {
-  frontendPath,
-  fallbackPath,
-  actualFrontendPath,
-  frontendExists: actualFrontendPath ? fs.existsSync(actualFrontendPath) : false
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'FastBuss Backend is running',
+    timestamp: new Date().toISOString()
+  });
 });
-
-// Serve static files if frontend exists
-if (actualFrontendPath) {
-  app.use(express.static(actualFrontendPath));
-  console.log('✅ Serving frontend static files from:', actualFrontendPath);
-}
 
 // API routes first
 app.use('/api/v1/auth', authRoutes);
@@ -97,22 +80,16 @@ app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/paypal', paypalRoutes);
 app.use('/api/v1/support', supportTicketRoutes);
 
-// Catch-all handler for React Router
+// API-only catch-all
 app.get('*', (req, res) => {
-  if (actualFrontendPath) {
-    const indexPath = path.join(actualFrontendPath, 'index.html');
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      res.status(404).json({ message: 'Frontend index.html not found', path: indexPath });
+  res.status(404).json({ 
+    message: 'API endpoint not found',
+    availableEndpoints: {
+      health: '/health',
+      setupAdmin: '/api/v1/auth/setup-admin',
+      login: '/api/v1/auth/login'
     }
-  } else {
-    res.status(404).json({ 
-      message: 'Frontend not available', 
-      note: 'API endpoints are available at /api/v1/*',
-      setupAdmin: '/api/v1/auth/setup-admin'
-    });
-  }
+  });
 });
 
 const server = http.createServer(app);

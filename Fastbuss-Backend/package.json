@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
-    "build": "npm run build:frontend && npm run build:backend",
-    "build:frontend": "node build-frontend.js",
+    "build": "npm run build:backend",
     "build:backend": "tsc",
     "test": "jest"
   },

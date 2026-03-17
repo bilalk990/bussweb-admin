@@ -2,16 +2,13 @@
 nixPkgs = ['nodejs_20']
 
 [phases.install]
-cmds = ['cd Fastbuss-Backend && npm ci']
+cmds = ['npm ci']
 
 [phases.build]
-cmds = [
-  'cd FastBuss-Admin && npm ci && npm run build',
-  'cd Fastbuss-Backend && npm run build:backend'
-]
+cmds = ['npm run build:backend']
 
 [start]
-cmd = 'cd Fastbuss-Backend && npm start'
+cmd = 'npm start'
 
 [variables]
 NODE_ENV = 'production'
