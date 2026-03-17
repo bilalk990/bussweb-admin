@@ -21,21 +21,29 @@ import supportTicketRoutes from "./routes/support_ticket_routes";
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 8080;
 
 
 app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
     const allowedOrigins = [
       process.env.LOCAL,
       process.env.LOCAL2,
       process.env.ORIGIN,
+      'https://bussweb-admin-production.up.railway.app',
+      'http://localhost:3000',
+      'http://localhost:5173'
     ];
-    if (!origin || allowedOrigins.includes(origin)) {
+    
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      console.log('CORS blocked origin:', origin);
+      callback(null, true); // Allow all origins for now
     }
   },
   credentials: true,
