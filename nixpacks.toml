@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ['nodejs_20']
+
+[phases.install]
+cmds = ['cd FastBuss-Admin && npm install']
+
+[phases.build]
+cmds = ['cd FastBuss-Admin && npm run build']
+
+[start]
+cmd = 'cd FastBuss-Admin && npx serve -s dist -p $PORT'
