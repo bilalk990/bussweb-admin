@@ -6,9 +6,7 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
-    "build": "npm run build:frontend && npm run build:backend",
-    "build:frontend": "cd ../FastBuss-Admin && npm ci && npm run build",
-    "build:backend": "tsc",
+    "build": "tsc",
     "test": "jest",
     "postinstall": "npx puppeteer browsers install chrome"
   },
