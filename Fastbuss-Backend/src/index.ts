@@ -60,20 +60,20 @@ app.use('/api/v1/paypal', paypalRoutes);
 app.use('/api/v1/support', supportTicketRoutes);
 
 // Serve React frontend
-const frontendPath = path.join(__dirname, '../../../FastBuss-Admin/dist');
-const frontendPath2 = path.join(__dirname, '../../FastBuss-Admin/dist');
+const frontendPath = path.join(__dirname, '../../FastBuss-Admin/dist');
 const fs = require('fs');
-const finalFrontendPath = fs.existsSync(frontendPath) ? frontendPath : frontendPath2;
-console.log('Frontend path:', finalFrontendPath, 'exists:', fs.existsSync(finalFrontendPath));
-app.use(express.static(finalFrontendPath));
-app.get('*', (req, res) => {
-  const indexPath = path.join(finalFrontendPath, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(404).json({ message: 'Frontend not built', path: finalFrontendPath });
-  }
-});
+console.log('Checking frontend path:', frontendPath);
+console.log('Frontend exists:', fs.existsSync(frontendPath));
+if (fs.existsSync(frontendPath)) {
+  app.use(express.static(frontendPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+} else {
+  app.get('*', (req, res) => {
+    res.status(404).json({ message: 'Frontend not built', path: frontendPath });
+  });
+}
 
 const server = http.createServer(app);
 setupSocket(server);
