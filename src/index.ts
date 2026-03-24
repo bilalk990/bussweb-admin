@@ -38,6 +38,7 @@ app.use(cors({
       process.env.LOCAL2,
       process.env.ORIGIN,
       'https://bussweb-admin-production.up.railway.app',
+      'https://bussadmin-frontend.vercel.app',
       'http://localhost:3000',
       'http://localhost:5173',
       'http://localhost:5174'
