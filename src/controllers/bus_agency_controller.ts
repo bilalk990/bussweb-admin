@@ -828,7 +828,7 @@ export const busAgencyController = {
             const subCompanyId = res.locals.user.agencyId;
 
             // Use Promise.all to run queries in parallel instead of sequentially
-            const [bus, driver, isAssigned] = await Promise.all([
+            const [bus, driver, previouslyAssignedBus] = await Promise.all([
                 Bus.findOne({ where: { id: busId, agencyId: subCompanyId } }),
                 User.findOne({ where: { id: driverId, role: 'driver', agencyId: subCompanyId } }),
                 Bus.findOne({ where: { driverId } })
@@ -837,7 +837,11 @@ export const busAgencyController = {
             // Validation checks
             if (!bus) return res.status(404).json({ message: "Bus not found." });
             if (!driver) return res.status(404).json({ message: "Driver not found." });
-            if (isAssigned) return res.status(400).json({ message: "Driver already assigned to a bus." });
+
+            // If driver is already assigned to another bus, unassign first
+            if (previouslyAssignedBus && previouslyAssignedBus.id !== busId) {
+                await previouslyAssignedBus.update({ driverId: null });
+            }
 
             // Perform updates in parallel
             await Promise.all([
