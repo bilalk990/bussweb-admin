@@ -1071,6 +1071,8 @@ export const busAgencyController = {
                     dropoff: destPoint.id,
                     amount: Number(adultPrice),
                     currency: "USD",
+                    departureTime: "08:00:00", // Default departure time
+                    arrivalTime: "16:00:00",   // Default arrival time (8 hours later)
                 });
             } catch (fareErr) {
                 console.error("Warning: could not create bus_fare/bus_points:", fareErr);
