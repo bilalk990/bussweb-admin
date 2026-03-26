@@ -1197,7 +1197,7 @@ export const busAgencyController = {
             const subCompanyId = res.locals.user.agencyId;
 
             const routes = await Route.findAll({ where: { agencyId: subCompanyId } });
-            
+
             // Fetch stops for all routes
             const routeIds = routes.map(r => r.id);
             const allStops = await RouteStop.findAll({
@@ -1427,6 +1427,9 @@ export const busAgencyController = {
                     }
                 }
 
+                // Count actual stops for this route
+                const stopsCount = await RouteStop.count({ where: { routeId: trip.routeId } });
+
                 return {
                     ...tripData,
                     _id: trip.id.toString(),
@@ -1444,7 +1447,7 @@ export const busAgencyController = {
                     // Combine date + time for frontend datetime parsing
                     departureTime: trip.departureDate + 'T' + trip.departureTime,
                     arrivalTime: trip.departureDate + 'T' + trip.arrivalTime,
-                    stops: 0
+                    stops: stopsCount
                 };
             }));
             res.status(200).json({ message: "Trip history fetched successfully", data: mappedTrips });
@@ -1466,21 +1469,51 @@ export const busAgencyController = {
             const trip = await Trip.findOne({ where: { id: tripId, agencyId: subCompanyId } });
             if (!trip) return res.status(404).json({ message: "Trip not found" });
 
-            // Fetch related bus data via Sequelize
-            const bus = trip.busId ? await Bus.findByPk(trip.busId) : null;
+            // Fetch related data manually
+            const [bus, route, stops] = await Promise.all([
+                trip.busId ? Bus.findByPk(trip.busId) : Promise.resolve(null),
+                trip.routeId ? Route.findByPk(trip.routeId) : Promise.resolve(null),
+                trip.routeId ? RouteStop.findAll({ where: { routeId: trip.routeId }, order: [['stopOrder', 'ASC']] }) : Promise.resolve([])
+            ]);
+
+            let driver = null;
+            if (bus && bus.driverId) {
+                const driverUser = await User.findByPk(bus.driverId);
+                if (driverUser) {
+                    driver = {
+                        name: driverUser.name,
+                        phone: driverUser.phone || "N/A"
+                    };
+                }
+            }
 
             const response = {
                 tripId: trip.id,
                 status: trip.status,
                 departureDate: trip.departureDate,
-                departureTime: trip.departureTime,
-                arrivalTime: trip.arrivalTime,
+                departureTime: trip.departureDate + 'T' + trip.departureTime,
+                arrivalTime: trip.departureDate + 'T' + trip.arrivalTime,
+                route: {
+                    name: route ? (route.routeName || `${route.origin} → ${route.destination}`) : "Unknown Route",
+                    origin: route ? route.origin : "N/A",
+                    destination: route ? route.destination : "N/A",
+                    distance: route ? route.distance : 0,
+                    adultPrice: 0, // Not directly in Route model, could be in BusFare
+                    childPrice: 0
+                },
+                stops: stops.map(stop => ({
+                    _id: stop.id.toString(),
+                    location: stop.stopName,
+                    arrivalTime: stop.arrivalTime ? trip.departureDate + 'T' + stop.arrivalTime : null,
+                    departureTime: stop.departureTime ? trip.departureDate + 'T' + stop.departureTime : null
+                })),
                 bus: bus ? {
                     name: bus.name,
                     plateNumber: bus.plateNumber,
                     type: bus.busType,
                     capacity: bus.capacity
-                } : null
+                } : null,
+                driver: driver || { name: "N/A", phone: "N/A" }
             };
 
             res.status(200).json({ message: "Trip details fetched successfully", data: response });
@@ -1517,6 +1550,28 @@ export const busAgencyController = {
 
         } catch (error) {
             console.error("Error canceling trip:", error);
+            res.status(500).json({ message: "Internal server error" });
+        }
+    },
+
+    deleteTrip: async (req: Request, res: Response) => {
+        try {
+            const { tripId } = req.params;
+            if (!tripId) {
+                res.status(400).json({ message: "Trip ID is required" });
+                return;
+            }
+            const subCompanyId = res.locals.user.agencyId;
+
+            const trip = await Trip.findOne({ where: { id: tripId, agencyId: subCompanyId } });
+            if (!trip) return res.status(404).json({ message: "Trip not found" });
+
+            // Permanent deletion
+            await trip.destroy();
+
+            res.status(200).json({ message: "Trip deleted successfully" });
+        } catch (error) {
+            console.error("Error deleting trip:", error);
             res.status(500).json({ message: "Internal server error" });
         }
     },
@@ -1701,6 +1756,8 @@ export const busAgencyController = {
                     destination: route?.destination || 'N/A',
                     departureDate: trip?.departureDate || 'N/A',
                     departureTime: trip?.departureTime || 'N/A',
+                    ticketNumber: b.ticketNumber || 'N/A',
+                    seats: b.seats || [],
                     totalAmount: Number(b.totalPrice),
                     status: b.status,
                     createdAt: (b as any).created_at || (b as any).createdAt || new Date().toISOString(),
@@ -1845,8 +1902,8 @@ export const busAgencyController = {
     addRouteStop: async (req: Request, res: Response) => {
         try {
             const { routeId } = req.params;
-            const { stopName, stopOrder, arrivalTime, departureTime, stopDurationMinutes, 
-                    distanceFromPrevious, latitude, longitude, address } = req.body;
+            const { stopName, stopOrder, arrivalTime, departureTime, stopDurationMinutes,
+                distanceFromPrevious, latitude, longitude, address } = req.body;
             const subCompanyId = res.locals.user.agencyId;
 
             if (!routeId || !stopName) {
@@ -1901,7 +1958,7 @@ export const busAgencyController = {
         try {
             const { stopId } = req.params;
             const { stopName, stopOrder, arrivalTime, departureTime, stopDurationMinutes,
-                    distanceFromPrevious, latitude, longitude, address } = req.body;
+                distanceFromPrevious, latitude, longitude, address } = req.body;
             const subCompanyId = res.locals.user.agencyId;
 
             if (!stopId) {

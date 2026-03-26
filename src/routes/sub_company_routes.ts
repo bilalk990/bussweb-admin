@@ -64,6 +64,7 @@ router.get("/staff-details/:staffId", busAgencyController.staffDetails);
 // Trip Management
 router.put("/update-trip", busAgencyController.updateTrip);
 router.put("/cancel-trip/:tripId", busAgencyController.cancelTrip);
+router.delete("/delete-trip/:tripId", busAgencyController.deleteTrip);
 
 
 export default router;
