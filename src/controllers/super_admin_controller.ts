@@ -51,8 +51,8 @@ export const superAdminController = {
             await sequelize.query(
                 `INSERT INTO bus_agencies 
                  (agency_name, email, phone, agency_description, agency_logo, status, login_type, 
-                  last_name, address, is_verified, parcel_delivery, creer, modifier, updated_at)
-                 VALUES (?, ?, ?, ?, ?, 'no', 'email', ?, 'N/A', 1, 'no', ?, ?, ?)`,
+                  last_name, address, is_verified, is_active, parcel_delivery, creer, modifier, updated_at)
+                 VALUES (?, ?, ?, ?, ?, 'no', 'email', ?, 'N/A', 1, 1, 'no', ?, ?, ?)`,
                 { replacements: [agencyName, contactEmail, contactPhone, description, logoUrl, adminName, now, now, now] }
             );
 
